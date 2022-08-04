@@ -14,29 +14,55 @@ namespace Mikey {
         }
     }
 
+    // TODO: also lie and say MikeyRush when inside GhostPlayback.LoadLevelData
+    // will also need to adjust SaveCompressed to save w/ an id of 1UL
     class ThisPatchHasToApplyAtLaunchSmile {
         [HarmonyPatch(typeof(LevelRush), "GetCurrentLevelRushType")]
         [HarmonyPostfix]
         public static void ItsMikeyTime(ref LevelRush.LevelRushType __result) {
-            if (ThankYouProZD.inSetCard) {
+            if (ThankYouProZD.inCardShit) {
                 __result = LevelRush.LevelRushType.MikeyRush;
             }
         }
     }
 
     class ThankYouProZD {
-        public static bool inSetCard = false;
+        public static bool inCardShit = false;
 
         [HarmonyPatch(typeof(CardPickup), "SetCard")]
         [HarmonyPrefix]
         public static void OnEnterCardShit() {
-            inSetCard = true;
+            inCardShit = true;
         }
 
         [HarmonyPatch(typeof(CardPickup), "SetCard")]
         [HarmonyPostfix]
         public static void OnExitCardShit() {
-            inSetCard = false;
+            inCardShit = false;
+        }
+
+        [HarmonyPatch(typeof(CardPickup), "Spawn")]
+        [HarmonyPrefix]
+        public static void OnEnterCardSpawnShit() {
+            inCardShit = true;
+        }
+
+        [HarmonyPatch(typeof(CardPickup), "Spawn")]
+        [HarmonyPostfix]
+        public static void OnExitCardSpawnShit() {
+            inCardShit = false;
+        }
+
+        [HarmonyPatch(typeof(CardPickup), "SpawnPickupVendor")]
+        [HarmonyPrefix]
+        public static void OnEnterVendorShit() {
+            inCardShit = true;
+        }
+
+        [HarmonyPatch(typeof(CardPickup), "SpawnPickupVendor")]
+        [HarmonyPostfix]
+        public static void OnExitVendorShit() {
+            inCardShit = false;
         }
 
         [HarmonyPatch(typeof(GhostRecorder), "SaveCompressed", new Type[] { } )]

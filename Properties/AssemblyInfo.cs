@@ -38,5 +38,5 @@ using Mikey;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
-[assembly: MelonInfo(typeof(MikeyMode), "Mikey Practice Mode", "1.0.1", "Pandora's Fox")]
+[assembly: MelonInfo(typeof(MikeyMode), "Mikey Practice Mode", "1.0.2", "Pandora's Fox")]
 [assembly: MelonGame("Little Flag Software, LLC", "Neon White")]
