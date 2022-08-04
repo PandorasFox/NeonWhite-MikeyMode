@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 using MelonLoader;
 using HarmonyLib;
@@ -20,65 +21,104 @@ namespace Mikey {
         [HarmonyPatch(typeof(LevelRush), "GetCurrentLevelRushType")]
         [HarmonyPostfix]
         public static void ItsMikeyTime(ref LevelRush.LevelRushType __result) {
-            if (ThankYouProZD.inCardShit) {
+            if (ThankYouProZD.are_we_lying) {
                 __result = LevelRush.LevelRushType.MikeyRush;
+            }
+        }
+
+        [HarmonyPatch(typeof(LevelRush), "IsLevelRush")]
+        [HarmonyPostfix]
+        public static void ItsMikeyTimeBaby(ref bool __result) {
+            if (ThankYouProZD.are_we_lying) {
+                __result = true;
             }
         }
     }
 
     class ThankYouProZD {
-        public static bool inCardShit = false;
+        public static bool are_we_lying = false;
+
+        [HarmonyPatch(typeof(GhostPlayback), "LoadLevelData")]
+        [HarmonyPrefix]
+        public static void OnEnterLoadShit() {
+            are_we_lying = MikeyMode.use_mikey_ghosts.Value;
+        }
+
+        // LoadLevelData does a callback rather than exit -> flag set to false, so we just hook the callback and set to false there instead
+        [HarmonyPatch(typeof(GhostPlayback), "OnLevelDataLoaded")]
+        [HarmonyPrefix]
+        public static void OnExitLoadShit() {
+            are_we_lying = false;
+        }
 
         [HarmonyPatch(typeof(CardPickup), "SetCard")]
         [HarmonyPrefix]
         public static void OnEnterCardShit() {
-            inCardShit = true;
+            are_we_lying = true;
         }
 
         [HarmonyPatch(typeof(CardPickup), "SetCard")]
         [HarmonyPostfix]
         public static void OnExitCardShit() {
-            inCardShit = false;
+            are_we_lying = false;
         }
 
         [HarmonyPatch(typeof(CardPickup), "Spawn")]
         [HarmonyPrefix]
         public static void OnEnterCardSpawnShit() {
-            inCardShit = true;
+            are_we_lying = true;
         }
 
         [HarmonyPatch(typeof(CardPickup), "Spawn")]
         [HarmonyPostfix]
         public static void OnExitCardSpawnShit() {
-            inCardShit = false;
+            are_we_lying = false;
         }
 
         [HarmonyPatch(typeof(CardPickup), "SpawnPickupVendor")]
         [HarmonyPrefix]
         public static void OnEnterVendorShit() {
-            inCardShit = true;
+            are_we_lying = true;
         }
 
         [HarmonyPatch(typeof(CardPickup), "SpawnPickupVendor")]
         [HarmonyPostfix]
         public static void OnExitVendorShit() {
-            inCardShit = false;
+            are_we_lying = false;
         }
 
         [HarmonyPatch(typeof(GhostRecorder), "SaveCompressed", new Type[] { } )]
         [HarmonyPrefix]
-        public static bool PreventGhosts() {
+        public static bool SaveMikeyGhosts(GhostRecorder __instance) {
+            FieldInfo recording_frames = typeof(GhostRecorder).GetField("m_recordingFrames", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo recording_index = typeof(GhostRecorder).GetField("m_recordingIndex", BindingFlags.Instance | BindingFlags.NonPublic);
+            GhostFrame[] frames = (GhostFrame[]) recording_frames.GetValue(__instance);
+            int index = (int)recording_index.GetValue(__instance);
+            
+            // and now we save.... 
+            string path = "";
+            GhostUtils.GetPath(GhostUtils.GhostType.PersonalGhost, ref path);
+            GhostRecorder.SaveCompressed(frames, index, path, 1UL, true);
             return false;
+        }
+
+        [HarmonyPatch(typeof(GhostUtils), "LoadLevelTotalTimeCompressed")]
+        [HarmonyPrefix]
+        public static void AllanPleaseAddID(ref ulong saveId) {
+            saveId = 1UL;
         }
     }
 
     public class MikeyMode : MelonMod {
-        MelonPreferences_Category mikey_rush;
-        MelonPreferences_Entry<bool> is_enabled;
+        public static MelonPreferences_Category mikey_rush;
+        public static MelonPreferences_Entry<bool> is_enabled;
+        public static MelonPreferences_Entry<bool> use_mikey_ghosts;
         public static bool was_enabled = false;
+
         public override void OnApplicationLateStart() {
             mikey_rush = MelonPreferences.CreateCategory("Mikey Mode Practice");
             is_enabled = mikey_rush.CreateEntry("Enable mikey rush mode (must restart to turn off)" , false);
+            use_mikey_ghosts = mikey_rush.CreateEntry("Load mikey ghosts when enabled", true);
             HarmonyInstance.PatchAll(typeof(ThisPatchHasToApplyAtLaunchSmile));
             DoPatch();
         }
