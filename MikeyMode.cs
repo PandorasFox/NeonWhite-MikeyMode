@@ -38,6 +38,12 @@ namespace Mikey {
         public static void OnExitCardShit() {
             inSetCard = false;
         }
+
+        [HarmonyPatch(typeof(GhostRecorder), "SaveCompressed", new Type[] { } )]
+        [HarmonyPrefix]
+        public static bool PreventGhosts() {
+            return false;
+        }
     }
 
     public class MikeyMode : MelonMod {
